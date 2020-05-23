@@ -97,9 +97,20 @@ class Gradient:
             )
         gradient.append(color2)
 
+        self.running = True
+        self.thread = Thread(target=self.thread_send_gradient,
+                             args=("thread_keep_alive", gradient, smooth, time, steps))
+        self.thread.start()
+
+    def thread_send_gradient(self, thread_name, gradient, smooth, time, steps):
         for i in range(len(gradient)):
-            self.Static.apply(gradient[i])
-            sleep(time/steps)
+            if (self.running):
+                self.Static.apply(gradient[i], hs=(False if smooth else True))
+                sleep(time/steps)
+            else:
+                print("Halting effect...")
+                return
+        self.running = False
 
     def spectrum(self):
         """Cycle through the whole rainbow spectrum
