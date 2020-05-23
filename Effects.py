@@ -60,13 +60,16 @@ class Gradient:
 
         return '#' + r + g + b
 
-    def apply(self, color1, color2, time):
+    def apply(self, time, color1, color2, smooth=False):
         """Send a gradient from color1 to color2 with a length of time.
 
         Arguments:
+            time {float} -- Gradient length in seconds
             color1 {str} -- Color in the format "#FFFFFF" (hex)
             color2 {str} -- Color in the format "#FFFFFF" (hex)
-            time {float} -- Gradient length in seconds
+
+        Keyword Arguments:
+            smooth {bool} -- Smooth flag, disables headsets which allows for faster effects (default: {False})
         """
 
         color_tuple1 = (
@@ -82,7 +85,7 @@ class Gradient:
 
         # Create an array of gradient hex codes
         gradient = []
-        steps = time * 10
+        steps = time * (30 if smooth else 10)
         for i in range(steps):
             # Gradient code calculation
             gradient.append(
@@ -113,16 +116,19 @@ class Flash:
         self.uri = uri
         self.Static = Static(uri)
 
-    def apply(self, n, delay, color):
+    def apply(self, n, delay, color1, color2, smooth=False):
         """Flash color n times.
 
         Arguments:
             n {int} -- How many times should the color appear
             delay {float} -- Delay between flashes in seconds
             color {str} -- Flash color in the format "#FFFFFF" (hex)
+
+        Keyword Arguments:
+            smooth {bool} -- Smooth flag, disables headsets which allows for faster effects (default: {False})
         """
         for i in range(n):
-            self.Static.apply(color)
+            self.Static.apply(color1, hs=(False if smooth else True))
             sleep(delay/2)
-            self.Static.apply("#000000")
+            self.Static.apply(color2, hs=(False if smooth else True))
             sleep(delay/2)
