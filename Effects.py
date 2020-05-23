@@ -1,6 +1,7 @@
 import requests
 import App
 from time import sleep
+from threading import Thread
 
 
 class Static:
@@ -31,6 +32,7 @@ class Static:
 class Gradient:
     def __init__(self, uri):
         self.uri = uri
+        self.running = False
         self.Static = Static(uri)
 
     def calculate_gradient_step(self, color_tuple1, color_tuple2, t):
