@@ -41,7 +41,8 @@ class Gradient:
         )))[2:]
 
         g = str(hex(int(
-            (color_tuple2[1] - color_tuple1[1])
+            color_tuple1[1]
+            + (color_tuple2[1] - color_tuple1[1])
             * t
         )))[2:]
 
