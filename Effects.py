@@ -111,7 +111,6 @@ class Gradient:
                 self.Static.apply(gradient[i], hs=(False if smooth else True))
                 sleep(time/steps)
             else:
-                print("Halting effect...")
                 return
         self.running = False
 
@@ -141,8 +140,30 @@ class Flash:
         Keyword Arguments:
             smooth {bool} -- Smooth flag, disables headsets which allows for faster effects (default: {False})
         """
-        for i in range(n):
+        for _ in range(n):
             self.Static.apply(color1, hs=(False if smooth else True))
             sleep(delay/2)
             self.Static.apply(color2, hs=(False if smooth else True))
             sleep(delay/2)
+
+
+class Rainbow:
+
+    def __init__(self, uri):
+        self.uri = uri
+        self.Gradient = Gradient(uri)
+
+    def apply(self, smooth=False):
+        codes = [
+            "#FF0000",
+            "#FF7F00",
+            "#FFFF00",
+            "#00FF00",
+            "#0000FF",
+            "#4B0082",
+            "#9400D3",
+            "#FF0000"
+        ]
+        for i in range(len(codes) - 1):
+            self.Gradient.apply(2, codes[i], codes[i+1], smooth=smooth)
+            self.Gradient.thread.join()

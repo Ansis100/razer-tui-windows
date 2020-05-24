@@ -53,6 +53,7 @@ class App:
         self.Flash = Effects.Flash(self.uri)
         self.Gradient = Effects.Gradient(self.uri)
         self.Static = Effects.Static(self.uri)
+        self.Rainbow = Effects.Rainbow(self.uri)
 
     def exit(self):
         self.keep_alive = False
