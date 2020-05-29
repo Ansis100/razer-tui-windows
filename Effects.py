@@ -195,10 +195,21 @@ class Weather:
 
     def apply(self, city, smooth=False):
 
+        r = requests.get(
+            f"http://api.weatherapi.com/v1/current.json?key=77bec6452ff6453f98a94016202705&q={city}"
+        )
+
+        if (r.status_code == 400):
+            return False
+
+        r = r.json()
+
         self.running = True
         self.thread = Thread(target=self.effect_thread,
                              args=("thread", city, smooth))
         self.thread.start()
+
+        return True
 
     # TEMP
     # def test(self, code, smooth=False):
