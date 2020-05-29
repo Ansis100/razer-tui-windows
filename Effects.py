@@ -1,5 +1,6 @@
 import requests
 import App
+import datetime
 from time import sleep
 from threading import Thread
 
@@ -63,7 +64,7 @@ class Gradient:
 
         return '#' + r + g + b
 
-    def apply(self, time, color1, color2, smooth=False):
+    def apply(self, time, color1, color2, smooth=False, thread=True):
         """Send a gradient from color1 to color2 with a length of time.
 
         Arguments:
@@ -73,6 +74,7 @@ class Gradient:
 
         Keyword Arguments:
             smooth {bool} -- Smooth flag, disables headsets which allows for faster effects (default: {False})
+            thread {bool} -- Thread flag, runs the effect on a separate thread, set to False if calling from another effect thread (default: {True})
         """
 
         color_tuple1 = (
@@ -101,17 +103,20 @@ class Gradient:
         gradient.append(color2)
 
         self.running = True
-        self.thread = Thread(target=self.thread_send_gradient,
-                             args=("thread_keep_alive", gradient, smooth, time, steps))
-        self.thread.start()
+        if (thread):
+            self.thread = Thread(target=self.effect_thread,
+                                 args=("thread", gradient, smooth, time, steps))
+            self.thread.start()
+        else:
+            self.effect_thread("thread", gradient, smooth, time, steps)
 
-    def thread_send_gradient(self, thread_name, gradient, smooth, time, steps):
+    def effect_thread(self, thread_name, gradient, smooth, time, steps):
         for i in range(len(gradient)):
             if (self.running):
                 self.Static.apply(gradient[i], hs=(False if smooth else True))
                 sleep(time/steps)
             else:
-                return
+                break
         self.running = False
 
     def spectrum(self):
@@ -151,6 +156,7 @@ class Rainbow:
 
     def __init__(self, uri):
         self.uri = uri
+        self.running = False
         self.Gradient = Gradient(uri)
 
     def apply(self, smooth=False):
@@ -164,6 +170,133 @@ class Rainbow:
             "#9400D3",
             "#FF0000"
         ]
+
+        self.running = True
+        self.thread = Thread(target=self.effect_thread,
+                             args=("thread", codes, smooth))
+        self.thread.start()
+
+    def effect_thread(self, thread_name, codes, smooth):
         for i in range(len(codes) - 1):
-            self.Gradient.apply(2, codes[i], codes[i+1], smooth=smooth)
-            self.Gradient.thread.join()
+            if(self.running):
+                self.Gradient.apply(
+                    2, codes[i], codes[i+1], smooth=smooth, thread=False)
+            else:
+                break
+        self.running = False
+
+
+class Weather:
+
+    def __init__(self, uri):
+        self.uri = uri
+        self.running = False
+        self.Gradient = Gradient(uri)
+
+    def apply(self, city, smooth=False):
+
+        self.running = True
+        self.thread = Thread(target=self.effect_thread,
+                             args=("thread", city, smooth))
+        self.thread.start()
+
+    # TEMP
+    # def test(self, code, smooth=False):
+    #     conditions = {
+    #         "01d": ["#ffff00", "#ffff00", 2],  # Clear
+    #         "02d": ["#ffff00", "#ffff33", 4],  # Few Clouds
+    #         "03d": ["#ffff33", "#ffffaa", 4],    # Scattered Clouds
+    #         "04d": ["#ffffaa", "#333333", 4],    # Broken Clouds
+    #         "09d": ["#ffffff", "#66bbff", 2],    # Shower Rain
+    #         "10d": ["#003333", "#0000ff", 2],    # Rain
+    #         "11d": ["#ffffff", "#0000ff", 2],    # Thunderstorm
+    #         "13d": ["#ffffff", "#000000", 2],    # Snow
+    #         "50d": ["#222222", "#222222", 2],    # Mist
+    #     }
+
+    #     self.running = True
+    #     self.thread = Thread(target=self.effect_thread,
+    #                          args=("thread", smooth))
+    #     self.thread.start()
+    # # /TEMP
+
+    def effect_thread(self, thread_name, city, smooth):
+        conditions = {
+            1000: ["#ffff00", "#ffff00", 2],  # Clear
+            1003: ["#ffff00", "#ffff33", 4],  # Few Clouds
+            1006: ["#ffff33", "#ffffaa", 4],  # Scattered Clouds
+            1009: ["#ffffaa", "#333333", 4],  # Broken Clouds
+
+            1030: ["#222222", "#222222", 2],  # Mist
+            1135: ["#222222", "#222222", 2],
+            1147: ["#222222", "#222222", 2],
+
+            1150: ["#ffffff", "#66bbff", 2],  # Light Rain
+            1153: ["#ffffff", "#66bbff", 2],
+            1063: ["#ffffff", "#66bbff", 2],
+            1168: ["#ffffff", "#66bbff", 2],
+            1180: ["#ffffff", "#66bbff", 2],
+            1183: ["#ffffff", "#66bbff", 2],
+            1198: ["#ffffff", "#66bbff", 2],
+
+            1186: ["#003333", "#0000ff", 2],  # Rain
+            1171: ["#003333", "#0000ff", 2],
+            1189: ["#003333", "#0000ff", 2],
+            1192: ["#003333", "#0000ff", 2],
+            1195: ["#003333", "#0000ff", 2],
+            1201: ["#003333", "#0000ff", 2],
+            1240: ["#003333", "#0000ff", 2],
+            1243: ["#003333", "#0000ff", 2],
+            1246: ["#003333", "#0000ff", 2],
+
+            1087: ["#ffffff", "#0000ff", 2],  # Thunderstorm
+            1273: ["#ffffff", "#0000ff", 2],
+            1276: ["#ffffff", "#0000ff", 2],
+            1279: ["#ffffff", "#0000ff", 2],
+            1282: ["#ffffff", "#0000ff", 2],
+
+            1066: ["#ffffff", "#000000", 2],  # Snow
+            1069: ["#ffffff", "#000000", 2],
+            1072: ["#ffffff", "#000000", 2],
+            1114: ["#ffffff", "#000000", 2],
+            1117: ["#ffffff", "#000000", 2],
+            1204: ["#ffffff", "#000000", 2],
+            1207: ["#ffffff", "#000000", 2],
+            1210: ["#ffffff", "#000000", 2],
+            1213: ["#ffffff", "#000000", 2],
+            1216: ["#ffffff", "#000000", 2],
+            1219: ["#ffffff", "#000000", 2],
+            1222: ["#ffffff", "#000000", 2],
+            1225: ["#ffffff", "#000000", 2],
+            1237: ["#ffffff", "#000000", 2],
+            1249: ["#ffffff", "#000000", 2],
+            1252: ["#ffffff", "#000000", 2],
+            1255: ["#ffffff", "#000000", 2],
+            1258: ["#ffffff", "#000000", 2],
+            1261: ["#ffffff", "#000000", 2],
+            1264: ["#ffffff", "#000000", 2],
+        }
+
+        r = requests.get(
+            f"http://api.weatherapi.com/v1/current.json?key=77bec6452ff6453f98a94016202705&q={city}"
+        ).json()
+        codes = conditions[r["current"]["condition"]["code"]]
+        code = r["current"]["condition"]["code"]
+
+        while True:
+            # Fetch new data every hour
+            if (((datetime.datetime.now().minute == 0) or (datetime.datetime.now().minute == 30)) and (0 <= datetime.datetime.now().second <= 10)):
+                r = requests.get(
+                    f"http://api.weatherapi.com/v1/current.json?key=77bec6452ff6453f98a94016202705&q={city}"
+                ).json()
+                codes = conditions[r["current"]["condition"]["code"]]
+
+            if (self.running):
+                self.Gradient.apply(
+                    codes[2], codes[0], codes[1], smooth=smooth, thread=False)
+            if (self.running):
+                self.Gradient.apply(
+                    codes[2], codes[1], codes[0], smooth=smooth, thread=False)
+            else:
+                break
+        self.running = False

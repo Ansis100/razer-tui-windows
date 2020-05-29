@@ -5,20 +5,20 @@ import os
 from App import App
 import Effects
 
-TEXT_WELCOME = """                                      
-  _ __  _   _ ___  ___ _ __ ___   
- | '_ \\| | | / __|/ _ \\ '_ ` _ \\  
- | |_) | |_| \\__ \\  __/ | | | | | 
- | .__/ \\__, |___/\\___|_| |_| |_| 
- | |     __/ |    _           _   
- |_|    |___/    (_)         | |  
-  ____  _ __ ___  _  ___  ___| |_ 
+TEXT_WELCOME = """
+  _ __  _   _ ___  ___ _ __ ___
+ | '_ \\| | | / __|/ _ \\ '_ ` _ \\
+ | |_) | |_| \\__ \\  __/ | | | | |
+ | .__/ \\__, |___/\\___|_| |_| |_|
+ | |     __/ |    _           _
+ |_|    |___/    (_)         | |
+  ____  _ __ ___  _  ___  ___| |_
  | '_ \\| '__/ _ \\| |/ _ \\/ __| __|
- | |_) | | | (_) | |  __/ (__| |_ 
+ | |_) | | | (_) | |  __/ (__| |_
  | .__/|_|  \\___/| |\\___|\\___|\\__|
- | |            _/ |              
- |_|           |__/               
- 
+ | |            _/ |
+ |_|           |__/
+
  """
 TEXT_HELP = """Smooth flag enables more fancy effects, such as smoother gradient fades and faster flashes.
 Toggle this on to disable lower-latency devices (such as headsets, speakers) from receiving effects."""
@@ -29,13 +29,25 @@ commands = [
     ("flash", "flash all devices in a 2 colors"),
     ("fade", "fade from one color to another"),
     ("exit", "close application"),
-    ("rainbow", "cycle through the colors of the rainbow")
+    ("rainbow", "cycle through the colors of the rainbow"),
+    ("weather", "display the current weather condition (WeatherAPI)"),
+    ("weathertest", "display the current weather condition (WeatherAPI)")
 ]
 smooth = False
 
 
 def exit_handler(signal, frame):
+    print("Halting all effects...")
     global App
+    if (App.Gradient.running):
+        App.Gradient.running = False
+        App.Gradient.thread.join()
+    if(App.Rainbow.running):
+        App.Rainbow.running = False
+        App.Rainbow.thread.join()
+    if(App.Weather.running):
+        App.Weather.running = False
+        App.Weather.thread.join()
     App.exit()
     sys.exit(0)
 
@@ -44,6 +56,10 @@ def exit_handler(signal, frame):
 signal.signal(signal.SIGINT, exit_handler)
 
 App = App()
+
+# Notify connect
+App.Static.apply("#ffffff", cl=False, kb=False, ms=False)
+App.Gradient.apply(1, "#00ff00", "#ffffff", smooth=True)
 
 # Main menu
 command = ""
@@ -69,25 +85,40 @@ while True:
     command = input("Enter command: ")
 
     if (command == "stop"):
-        App.Gradient.running = False
-        App.Gradient.thread.join()
+        print("Halting all effects...")
+        if (App.Gradient.running):
+            App.Gradient.running = False
+            App.Gradient.thread.join()
+        elif(App.Rainbow.running):
+            App.Rainbow.running = False
+            App.Rainbow.thread.join()
+        elif(App.Weather.running):
+            App.Weather.running = False
+            App.Weather.thread.join()
         App.Static.apply("#ffffff", cl=False, kb=False, ms=False)
         App.Gradient.apply(1, "#00ff00", "#ffffff", smooth=True)
+
         wrong_command = False
         continue
 
-    elif (App.Gradient.running):
+    elif (App.Gradient.running or App.Rainbow.running or App.Weather.running):
         print("Running effects detected!")
         finish = input("Wait for all effects to finish? (y/n) ")
         # TODO Create interrupt keyboard event
         if (finish == "y"):
             continue
         else:
-            print("Halting effects...")
-            App.Gradient.running = False
-            App.Gradient.thread.join()
-            App.Static.apply("#ffffff", cl=False, kb=False, ms=False)
-            App.Gradient.apply(1, "#00ff00", "#ffffff", smooth=True)
+            print("Halting all effects...")
+            if (App.Gradient.running):
+                App.Gradient.running = False
+                App.Gradient.thread.join()
+            if(App.Rainbow.running):
+                App.Rainbow.running = False
+                App.Rainbow.thread.join()
+            if(App.Weather.running):
+                App.Weather.running = False
+                App.Weather.thread.join()
+            print("Done!")
 
     if (command == "exit"):
         wrong_command = False
@@ -96,6 +127,7 @@ while True:
 
     elif (command == "toggle"):
         smooth = not smooth
+        wrong_command = False
 
     elif (command == "static"):
         color = input(
@@ -113,7 +145,6 @@ while True:
         color2 = input(
             "Darker color code? (in hexadecimal format \"#RRGGBB\") "
         )
-        smooth = input("Smooth? (y/n) ")
         App.Flash.apply(int(n), float(delay), color1, color2, smooth=smooth)
         wrong_command = False
 
@@ -132,6 +163,14 @@ while True:
     elif (command == "rainbow"):
         App.Rainbow.apply(smooth=smooth)
         wrong_command = False
+
+    elif (command == "weather"):
+        city = input("What city are you in? ")
+        App.Weather.apply(city, smooth=smooth)
+
+    elif (command == "weathertest"):
+        code = input("What weather code? ")
+        # App.Weather.test(code, smooth=smooth)
 
     else:
         wrong_command = True
