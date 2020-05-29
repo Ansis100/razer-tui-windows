@@ -23,7 +23,7 @@ TEXT_WELCOME = """
 TEXT_HELP = """Smooth flag enables more fancy effects, such as smoother gradient fades and faster flashes.
 Toggle this on to disable lower-latency devices (such as headsets, speakers) from receiving effects."""
 commands = [
-    ("stop", "stop", "halt all effects"),
+    ("stop", "halt all effects/reset to white"),
     ("toggle", "toggle smooth tag"),
     ("static", "set all devices to a single color"),
     ("flash", "flash all devices in a 2 colors"),
@@ -57,8 +57,8 @@ signal.signal(signal.SIGINT, exit_handler)
 App = App()
 
 # Notify connect
-App.Static.apply("#ffffff", cl=False, kb=False, ms=False)
-App.Gradient.apply(1, "#00ff00", "#ffffff", smooth=True)
+App.Flash.apply(2, 0.6, "#00ff00", "#ffffff")
+App.Gradient.apply(2, "#00ff00", "#ffffff")
 
 # Main menu
 command = ""
@@ -77,7 +77,8 @@ while True:
 
     # Notify wrong command
     if (wrong_command):
-        App.Gradient.apply(1, "#ff0000", "#ffffff", smooth=True)
+        App.Flash.apply(3, 0.10, "#ff0000", "#000000", smooth=True)
+        App.Static.apply("#ffffff")
         print(f"Command {command} not found, please try again.")
 
     # Command parsing
@@ -94,8 +95,7 @@ while True:
         elif(App.Weather.running):
             App.Weather.running = False
             App.Weather.thread.join()
-        App.Static.apply("#ffffff", cl=False, kb=False, ms=False)
-        App.Gradient.apply(1, "#00ff00", "#ffffff", smooth=True)
+        App.Gradient.apply(1, "#00ff00", "#ffffff")
 
         wrong_command = False
         continue
@@ -125,7 +125,14 @@ while True:
         break
 
     elif (command == "toggle"):
-        smooth = not smooth
+        if (smooth):
+            App.Flash.apply(1, 0.6, "#000000", "#ffffff")
+            smooth = False
+        else:
+            App.Static.apply("#000000")
+            App.Flash.apply(1, 0.6, "#000000", "#ffffff", smooth=True)
+            smooth = True
+
         wrong_command = False
 
     elif (command == "static"):
@@ -138,13 +145,13 @@ while True:
         n = input("Flash how many times? ")
         delay = input(
             "Delay between flashes? (in seconds, 0.1 for 100ms) ")
-        color1 = input(
+        brighter = input(
             "Brighter color code? (in hexadecimal format \"#RRGGBB\") "
         )
-        color2 = input(
+        darker = input(
             "Darker color code? (in hexadecimal format \"#RRGGBB\") "
         )
-        App.Flash.apply(int(n), float(delay), color1, color2, smooth=smooth)
+        App.Flash.apply(int(n), float(delay), darker, brighter, smooth=smooth)
         wrong_command = False
 
     elif (command == "fade"):
