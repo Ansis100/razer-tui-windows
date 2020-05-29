@@ -281,7 +281,6 @@ class Weather:
             f"http://api.weatherapi.com/v1/current.json?key=77bec6452ff6453f98a94016202705&q={city}"
         ).json()
         codes = conditions[r["current"]["condition"]["code"]]
-        code = r["current"]["condition"]["code"]
 
         while True:
             # Fetch new data every hour

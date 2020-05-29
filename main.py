@@ -31,7 +31,6 @@ commands = [
     ("exit", "close application"),
     ("rainbow", "cycle through the colors of the rainbow"),
     ("weather", "display the current weather condition (WeatherAPI)"),
-    ("weathertest", "display the current weather condition (WeatherAPI)")
 ]
 smooth = False
 
@@ -167,10 +166,6 @@ while True:
     elif (command == "weather"):
         city = input("What city are you in? ")
         App.Weather.apply(city, smooth=smooth)
-
-    elif (command == "weathertest"):
-        code = input("What weather code? ")
-        # App.Weather.test(code, smooth=smooth)
 
     else:
         wrong_command = True
